@@ -16,8 +16,10 @@ mongoose
 // Import and use routes
 const authRoutes = require("./routes/auth");
 const organizationRoutes = require("./routes/organization");
+const projectRoutes = require("./routes/project");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/organizations", organizationRoutes);
+app.use("/api/projects", projectRoutes);
 
 app.listen(5000, () => console.log("Server running on port 5000"));
