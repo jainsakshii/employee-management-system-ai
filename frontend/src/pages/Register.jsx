@@ -1,29 +1,27 @@
 import { useState } from "react";
-import { loginUser } from "../services/api.js";
+import { registerUser } from "../services/api.js";
 import { useNavigate } from "react-router-dom";
 
-const Login = () => {
-  const [formData, setFormData] = useState({ email: "", password: "", organizationId: "" });
+const Register = () => {
+  const [formData, setFormData] = useState({ name: "", email: "", password: "", organizationId: "" });
   const [message, setMessage] = useState("");
+  const navigate = useNavigate(); // For redirecting after successful registration
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const navigate = useNavigate();
-  
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await loginUser(formData);
 
+    const role = formData.organizationId ? "admin" : "employee";
+
+    const result = await registerUser({ ...formData, role });
     if (result.error) {
       setMessage(result.error);
     } else {
-      localStorage.setItem("token", result.token);
-      localStorage.setItem("role", result.role);
-      localStorage.setItem("organizationId", result.organizationId || "");
-      setMessage("Login successful!");
-      navigate("/home"); // Redirect to Home page
+      setMessage("User registered successfully!");
+      setTimeout(() => navigate("/login"), 2000);
     }
   };
 
@@ -31,10 +29,24 @@ const Login = () => {
     <div className="flex justify-center items-center min-h-screen bg-light">
       <div className="bg-soft p-8 rounded-xl shadow-lg w-96 border border-border">
         <h2 className="text-primary text-3xl font-semibold mb-6 text-center">
-          Welcome Back
+          Create Account
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-primary text-sm font-medium mb-2">
+              Name
+            </label>
+            <input
+              type="text"
+              name="name"
+              placeholder="Enter your name"
+              onChange={handleChange}
+              required
+              className="w-full p-3 rounded-md bg-medium text-deep border border-border focus:outline-none focus:ring-2 focus:ring-highlight placeholder-highlight transition duration-200"
+            />
+          </div>
+
           <div>
             <label className="block text-primary text-sm font-medium mb-2">
               Email
@@ -65,12 +77,12 @@ const Login = () => {
 
           <div>
             <label className="block text-primary text-sm font-medium mb-2">
-              Organization ID (Optional for Admins)
+              Organization ID (Optional for Employees)
             </label>
             <input
               type="text"
               name="organizationId"
-              placeholder="Enter your organization ID (if admin)"
+              placeholder="Enter your organization ID if admin"
               onChange={handleChange}
               className="w-full p-3 rounded-md bg-medium text-deep border border-border focus:outline-none focus:ring-2 focus:ring-highlight placeholder-highlight transition duration-200"
             />
@@ -80,7 +92,7 @@ const Login = () => {
             type="submit"
             className="w-full bg-primary hover:bg-dark text-white font-medium py-3 rounded-md transition duration-200 shadow-md"
           >
-            Sign In
+            Sign Up
           </button>
         </form>
 
@@ -91,12 +103,12 @@ const Login = () => {
         )}
 
         <p className="text-highlight text-sm text-center mt-6">
-          Don't have an account?{" "}
+          Already have an account?{" "}
           <a
-            href="/register"
+            href="/login"
             className="text-primary hover:underline transition duration-200"
           >
-            Sign up
+            Sign in
           </a>
         </p>
       </div>
@@ -104,4 +116,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

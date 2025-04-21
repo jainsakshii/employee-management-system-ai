@@ -1,53 +1,44 @@
 import { useState } from "react";
-import { registerUser } from "../services/api.js";
+import { loginUser } from "../services/api.js";
 import { useNavigate } from "react-router-dom";
 
-const Register = () => {
-  const [formData, setFormData] = useState({ name: "", email: "", password: "", organizationId: "" });
+const Login = () => {
+  const [formData, setFormData] = useState({ email: "", password: "", organizationId: "" });
   const [message, setMessage] = useState("");
-  const navigate = useNavigate(); // For redirecting after successful registration
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Determine role based on organizationId presence
-    const role = formData.organizationId ? "admin" : "employee";
-
-    const result = await registerUser({ ...formData, role }); // Send role with form data
+    const result = await loginUser(formData);
+    debugger
     if (result.error) {
-      setMessage(result.error);
+      setMessage(result.error['error']);
+    } else if (result.requiresOrgSelection) {
+      localStorage.setItem("userId", result.userId);
+      navigate(`/select-organization`);
     } else {
-      setMessage("User registered successfully!");
-      setTimeout(() => navigate("/login"), 2000); // Redirect to login page
+      localStorage.setItem("token", result.token);
+      localStorage.setItem("role", result.role);
+      localStorage.setItem("organizationId", result.organizationId || "");
+      setMessage("Login successful!");
+      navigate("/organization-dashboard");
     }
   };
+  
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-light">
       <div className="bg-soft p-8 rounded-xl shadow-lg w-96 border border-border">
         <h2 className="text-primary text-3xl font-semibold mb-6 text-center">
-          Create Account
+          Welcome Back
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-primary text-sm font-medium mb-2">
-              Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              placeholder="Enter your name"
-              onChange={handleChange}
-              required
-              className="w-full p-3 rounded-md bg-medium text-deep border border-border focus:outline-none focus:ring-2 focus:ring-highlight placeholder-highlight transition duration-200"
-            />
-          </div>
-
           <div>
             <label className="block text-primary text-sm font-medium mb-2">
               Email
@@ -78,12 +69,12 @@ const Register = () => {
 
           <div>
             <label className="block text-primary text-sm font-medium mb-2">
-              Organization ID (Optional for Employees)
+              Organization ID (Optional for Admins)
             </label>
             <input
               type="text"
               name="organizationId"
-              placeholder="Enter your organization ID if admin"
+              placeholder="Enter your organization ID (if admin)"
               onChange={handleChange}
               className="w-full p-3 rounded-md bg-medium text-deep border border-border focus:outline-none focus:ring-2 focus:ring-highlight placeholder-highlight transition duration-200"
             />
@@ -93,7 +84,7 @@ const Register = () => {
             type="submit"
             className="w-full bg-primary hover:bg-dark text-white font-medium py-3 rounded-md transition duration-200 shadow-md"
           >
-            Sign Up
+            Sign In
           </button>
         </form>
 
@@ -104,12 +95,12 @@ const Register = () => {
         )}
 
         <p className="text-highlight text-sm text-center mt-6">
-          Already have an account?{" "}
+          Don't have an account?{" "}
           <a
-            href="/login"
+            href="/register"
             className="text-primary hover:underline transition duration-200"
           >
-            Sign in
+            Sign up
           </a>
         </p>
       </div>
@@ -117,4 +108,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Login;
